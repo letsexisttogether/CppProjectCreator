@@ -1,7 +1,12 @@
 import os
+import argparse
 
+parser = argparse.ArgumentParser(description='Create a C++ project structure.')
+parser.add_argument('project_name', nargs='?', default='NewCppProject', help='The name of the project')
 
-projectName = "NewCppProject"
+# Parse the arguments
+args = parser.parse_args()
+projectName = args.project_name
 
 def CheckException(function, *args, **kwargs):
     try:
@@ -52,21 +57,23 @@ def CreateAndFillSource():
     CreateFolder(f'{projectName}/Source')
 
     # Content for CMakeLists.txt inside Source
-    cmakelistsContent = '''set(PROJECT_SOURCES
-    Main.cpp)
+    cmakelistsContent = f'''set(OUT_FILE_NAME {projectName})
 
-target_sources(${PROJECT_NAME}
-    PRIVATE ${PROJECT_SOURCES})
+set(SOURCES Main.cpp)
 
-target_include_directories(${PROJECT_NAME}
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+add_executable(${{OUT_FILE_NAME}})
+
+target_sources(${{OUT_FILE_NAME}}
+    PRIVATE ${{SOURCES}})
+
+target_include_directories(${{OUT_FILE_NAME}}
+    PRIVATE ${{CMAKE_CURRENT_SOURCE_DIR}})
     '''
     CreateFile(f'{projectName}/Source/CMakeLists.txt', cmakelistsContent)
 
-    # Content for Main.cpp
     mainFileContent = f'''#include <iostream>
     
-std::int32_t main(int argc, char** argv)
+std::int32_t main(std::int32_t argc, char** argv)
 {{
     std::cout << "Hello, {projectName}" << std::endl;
 
@@ -78,9 +85,31 @@ std::int32_t main(int argc, char** argv)
 def CreateAndFillTest():
     CreateFolder(f'{projectName}/Test')
 
-    cmakelistsContent = '''# Include your tests here'''
+    cmakelistsContent = f'''set(OUT_FILE_NAME {projectName}_TEST)
+set(SOURCES Main.cpp)
 
+add_executable(${{OUT_FILE_NAME}})
+
+target_sources(${{OUT_FILE_NAME}}
+    PRIVATE ${{SOURCES}})
+
+target_include_directories(${{OUT_FILE_NAME}}
+    PRIVATE ${{CMAKE_CURRENT_SOURCE_DIR}}
+    PRIVATE ${{CMAKE_SOURCE_DIR}}/Source
+)
+'''
     CreateFile(f'{projectName}/Test/CMakeLists.txt', cmakelistsContent)
+
+    mainFileContent = f'''#include <iostream>
+    
+std::int32_t main(std::int32_t argc, char** argv)
+{{
+    std::cout << "Hello, {projectName} Test" << std::endl;
+
+    return EXIT_SUCCESS;
+}}
+    '''
+    CreateFile(f'{projectName}/Test/Main.cpp', mainFileContent)
 
 def LoadGitignore():
     gitignoreContent = '''# Ignore build directories
