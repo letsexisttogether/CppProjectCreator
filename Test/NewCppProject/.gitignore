@@ -1,0 +1,9 @@
+# Ignore build directories
+build/
+bin/
+obj/
+
+# Ignore CMake files
+CMakeCache.txt
+CMakeFiles/
+    
